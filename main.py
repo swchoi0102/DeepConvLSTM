@@ -9,7 +9,7 @@ from sliding_window import sliding_window
 NB_SENSOR_CHANNELS = 113
 
 # Hardcoded number of classes in the gesture recognition problem
-NUM_CLASSES = 18
+NUM_CLASSES = 17
 
 # Hardcoded length of the sliding window mechanism employed to segment the data
 SLIDING_WINDOW_LENGTH = 24

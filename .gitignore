@@ -1,0 +1,6 @@
+# Created by .ignore support plugin (hsz.mobi)
+data/
+weights/
+.idea/*.xml
+OpportunityUCIDataset.zip
+DeepConvLSTM.ipynb

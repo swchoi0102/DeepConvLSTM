@@ -35,32 +35,32 @@ OPPORTUNITY_DATA_FILES = ['OpportunityUCIDataset/dataset/S1-Drill.dat',
 
 # Hardcoded thresholds to define global maximums and minimums for every one of the 113 sensor channels employed in the
 # OPPORTUNITY challenge
-NORM_MAX_THRESHOLDS = [3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       250,    25,     200,    5000,   5000,   5000,   5000,   5000,   5000,
-                       10000,  10000,  10000,  10000,  10000,  10000,  250,    250,    25,
-                       200,    5000,   5000,   5000,   5000,   5000,   5000,   10000,  10000,
-                       10000,  10000,  10000,  10000,  250, ]
+NORM_MAX_THRESHOLDS = [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       250, 25, 200, 5000, 5000, 5000, 5000, 5000, 5000,
+                       10000, 10000, 10000, 10000, 10000, 10000, 250, 250, 25,
+                       200, 5000, 5000, 5000, 5000, 5000, 5000, 10000, 10000,
+                       10000, 10000, 10000, 10000, 250, ]
 
-NORM_MIN_THRESHOLDS = [-3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -250,   -100,   -200,   -5000,  -5000,  -5000,  -5000,  -5000,  -5000,
-                       -10000, -10000, -10000, -10000, -10000, -10000, -250,   -250,   -100,
-                       -200,   -5000,  -5000,  -5000,  -5000,  -5000,  -5000,  -10000, -10000,
+NORM_MIN_THRESHOLDS = [-3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -250, -100, -200, -5000, -5000, -5000, -5000, -5000, -5000,
+                       -10000, -10000, -10000, -10000, -10000, -10000, -250, -250, -100,
+                       -200, -5000, -5000, -5000, -5000, -5000, -5000, -10000, -10000,
                        -10000, -10000, -10000, -10000, -250, ]
 
 
@@ -99,7 +99,7 @@ def normalize(data, max_list, min_list):
     max_list, min_list = np.array(max_list), np.array(min_list)
     diffs = max_list - min_list
     for i in np.arange(data.shape[1]):
-        data[:, i] = (data[:, i]-min_list[i])/diffs[i]
+        data[:, i] = (data[:, i] - min_list[i]) / diffs[i]
     #     Checking the boundaries
     data[data > 1] = 0.99
     data[data < 0] = 0.00
@@ -119,7 +119,7 @@ def divide_x_y(data, label):
 
     data_x = data[:, 1:114]
     if label not in ['locomotion', 'gestures']:
-            raise RuntimeError("Invalid label: '%s'" % label)
+        raise RuntimeError("Invalid label: '%s'" % label)
     if label == 'locomotion':
         data_y = data[:, 114]  # Locomotion label
     elif label == 'gestures':
@@ -140,26 +140,26 @@ def adjust_idx_labels(data_y, label):
     """
 
     if label == 'locomotion':  # Labels for locomotion are adjusted
-        data_y[data_y == 4] = 3
-        data_y[data_y == 5] = 4
+        data_y[data_y == 4] = 0
+        data_y[data_y == 5] = 3
     elif label == 'gestures':  # Labels for gestures are adjusted
-        data_y[data_y == 406516] = 1
-        data_y[data_y == 406517] = 2
-        data_y[data_y == 404516] = 3
-        data_y[data_y == 404517] = 4
-        data_y[data_y == 406520] = 5
-        data_y[data_y == 404520] = 6
-        data_y[data_y == 406505] = 7
-        data_y[data_y == 404505] = 8
-        data_y[data_y == 406519] = 9
-        data_y[data_y == 404519] = 10
-        data_y[data_y == 406511] = 11
-        data_y[data_y == 404511] = 12
-        data_y[data_y == 406508] = 13
-        data_y[data_y == 404508] = 14
-        data_y[data_y == 408512] = 15
-        data_y[data_y == 407521] = 16
-        data_y[data_y == 405506] = 17
+        data_y[data_y == 406516] = 0
+        data_y[data_y == 406517] = 1
+        data_y[data_y == 404516] = 2
+        data_y[data_y == 404517] = 3
+        data_y[data_y == 406520] = 4
+        data_y[data_y == 404520] = 5
+        data_y[data_y == 406505] = 6
+        data_y[data_y == 404505] = 7
+        data_y[data_y == 406519] = 8
+        data_y[data_y == 404519] = 9
+        data_y[data_y == 406511] = 10
+        data_y[data_y == 404511] = 11
+        data_y[data_y == 406508] = 12
+        data_y[data_y == 404508] = 13
+        data_y[data_y == 408512] = 14
+        data_y[data_y == 407521] = 15
+        data_y[data_y == 405506] = 16
     return data_y
 
 
@@ -210,7 +210,7 @@ def process_dataset_file(data, label):
     data = select_columns_opp(data)
 
     # Colums are segmentd into features and labels
-    data_x, data_y =  divide_x_y(data, label)
+    data_x, data_y = divide_x_y(data, label)
     data_y = adjust_idx_labels(data_y, label)
     data_y = data_y.astype(int)
 
@@ -258,10 +258,10 @@ def generate_data(dataset, target_filename, label):
     # Dataset is segmented into train and test
     nb_training_samples = 557963
     # The first 18 OPPORTUNITY data files define the traning dataset, comprising 557963 samples
-    X_train, y_train = data_x[:nb_training_samples,:], data_y[:nb_training_samples]
-    X_test, y_test = data_x[nb_training_samples:,:], data_y[nb_training_samples:]
+    X_train, y_train = data_x[:nb_training_samples, :], data_y[:nb_training_samples]
+    X_test, y_test = data_x[nb_training_samples:, :], data_y[nb_training_samples:]
 
-    print "Final datasets with size: | train {0} | test {1} | ".format(X_train.shape,X_test.shape)
+    print "Final datasets with size: | train {0} | test {1} | ".format(X_train.shape, X_test.shape)
 
     obj = [(X_train, y_train), (X_test, y_test)]
     f = file(os.path.join(data_dir, target_filename), 'wb')
@@ -270,16 +270,16 @@ def generate_data(dataset, target_filename, label):
 
 
 def get_args():
-    '''This function parses and return arguments passed in'''
-    parser = argparse.ArgumentParser(
-        description='Preprocess OPPORTUNITY dataset')
+    """This function parses and return arguments passed in"""
+    parser = argparse.ArgumentParser(description='Preprocess OPPORTUNITY dataset')
     # Add arguments
     parser.add_argument(
         '-i', '--input', type=str, help='OPPORTUNITY zip file', required=True)
     parser.add_argument(
         '-o', '--output', type=str, help='Processed data file', required=True)
     parser.add_argument(
-        '-t', '--task', type=str.lower, help='Type of activities to be recognized', default="gestures", choices = ["gestures", "locomotion"], required=False)
+        '-t', '--task', type=str.lower, help='Type of activities to be recognized', default="gestures",
+        choices=["gestures", "locomotion"], required=False)
     # Array for all arguments passed to script
     args = parser.parse_args()
     # Assign args to variables
@@ -289,7 +289,7 @@ def get_args():
     # Return all variable values
     return dataset, target_filename, label
 
-if __name__ == '__main__':
 
-    OpportunityUCIDataset_zip, output, l = get_args();
+if __name__ == '__main__':
+    OpportunityUCIDataset_zip, output, l = get_args()
     generate_data(OpportunityUCIDataset_zip, output, l)

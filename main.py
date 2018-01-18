@@ -2,6 +2,8 @@ import tensorflow as tf
 import numpy as np
 import cPickle as cp
 import sklearn.metrics as metrics
+import argparse
+import sys
 
 from sliding_window import sliding_window
 
@@ -20,9 +22,6 @@ FINAL_SEQUENCE_LENGTH = 8
 # Hardcoded step of the sliding window mechanism employed to segment the data
 SLIDING_WINDOW_STEP = 12
 
-# Batch Size
-BATCH_SIZE = 100
-
 # Number filters convolutional layers
 NUM_FILTERS = 64
 
@@ -32,11 +31,8 @@ FILTER_SIZE = 5
 # Number of unit in the long short-term recurrent layers
 NUM_UNITS_LSTM = 128
 
-NUM_EPOCH = 10
-
 
 def load_dataset(filename):
-
     with open(filename, 'rb') as f:
         data = cp.load(f)
 
@@ -76,13 +72,12 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 
 
 def build_graph(x):
-
     conv1 = tf.layers.conv2d(x, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv1/5x1')
     conv2 = tf.layers.conv2d(conv1, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv2/5x1')
     conv3 = tf.layers.conv2d(conv2, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv3/5x1')
     conv4 = tf.layers.conv2d(conv3, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv4/5x1')
     conv4_transpose = tf.transpose(conv4, perm=[0, 2, 1, 3])
-    conv4_reshape = tf.reshape(conv4_transpose, [-1, 97, 24*64])
+    conv4_reshape = tf.reshape(conv4_transpose, [-1, 97, 24 * 64])
 
     lstm = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(NUM_UNITS_LSTM) for _ in range(2)])
     output, state = tf.nn.dynamic_rnn(lstm, conv4_reshape, dtype=tf.float32)
@@ -97,8 +92,7 @@ def build_graph(x):
     return logits
 
 
-def main():
-
+def main(_):
     print("Loading data...")
     X_train, y_train, X_test, y_test = load_dataset('data/oppChallenge_gestures.data')
 
@@ -124,7 +118,7 @@ def main():
         loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=y))
 
     with tf.name_scope('optimizer'):
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=0.01)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=FLAGS.lr)
         train_op = optimizer.minimize(loss_op)
 
     with tf.name_scope('accuracy'):
@@ -141,13 +135,18 @@ def main():
     with tf.Session() as sess:
         sess.run(init)
 
-        for epoch in range(NUM_EPOCH):
-            for batch in iterate_minibatches(X_train, y_train, BATCH_SIZE):
+        step = 0
+        for epoch in range(FLAGS.num_epoch):
+            for batch in iterate_minibatches(X_train, y_train, FLAGS.batch_size):
                 x_batch, y_batch = batch
                 _, loss, acc = sess.run([train_op, loss_op, accuracy], feed_dict={x: x_batch, y: y_batch})
 
+                step += 1
+                if step % 10 == 0:
+                    print('step: {}, training loss: {}, training accuracy: {}'.format(step, loss, acc))
+
             test_pred, test_true = list(), list()
-            for batch in iterate_minibatches(X_test, y_test, BATCH_SIZE):
+            for batch in iterate_minibatches(X_test, y_test, FLAGS.batch_size):
                 x_batch, y_batch = batch
                 y_pred_ = sess.run([y_pred], feed_dict={x: x_batch, y: y_batch})
                 test_pred.extend(np.squeeze(y_pred_))
@@ -159,4 +158,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--batch_size', type=int, default=100, help='batch size')
+    parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
+    parser.add_argument('--num_epoch', type=int, default=10, help='the number of epochs')
+    FLAGS, unparsed = parser.parse_known_args()
+
+    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)

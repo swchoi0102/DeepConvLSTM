@@ -139,7 +139,7 @@ def main(_):
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    with tf.Session(config) as sess:
+    with tf.Session(config=config) as sess:
 
         # get current time
         t = tuple(localtime(time()))[1:5]

@@ -150,7 +150,7 @@ def main():
             for batch in iterate_minibatches(X_test, y_test, BATCH_SIZE):
                 x_batch, y_batch = batch
                 y_pred_ = sess.run([y_pred], feed_dict={x: x_batch, y: y_batch})
-                test_pred.extend(y_pred_)
+                test_pred.extend(np.squeeze(y_pred_))
                 test_true.extend(y_batch)
 
             accuracy = metrics.accuracy_score(test_true, test_pred)

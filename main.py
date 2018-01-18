@@ -146,14 +146,12 @@ def main():
                 x_batch, y_batch = batch
                 _, loss, acc = sess.run([train_op, loss_op, accuracy], feed_dict={x: x_batch, y: y_batch})
 
-            test_pred = np.empty(0)
-            test_true = np.empty(0)
-
+            test_pred, test_true = list(), list()
             for batch in iterate_minibatches(X_test, y_test, BATCH_SIZE):
                 x_batch, y_batch = batch
                 y_pred_ = sess.run([y_pred], feed_dict={x: x_batch, y: y_batch})
-                test_pred = np.append(test_pred, y_pred_, axis=0)
-                test_true = np.append(test_true, y_batch, axis=0)
+                test_pred.extend(y_pred_.tolist())
+                test_true.extend(y_batch.tolist())
 
             accuracy = metrics.accuracy_score(test_true, test_pred)
             f1 = metrics.f1_score(test_true, test_pred, average='weighted')

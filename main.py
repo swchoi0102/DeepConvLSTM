@@ -148,7 +148,7 @@ def main(_):
 
         # training and validation dataset summary writer
         train_writer = tf.summary.FileWriter(summary_dir + '/train', sess.graph)
-        validation_writer = tf.summary.FileWriter(summary_dir + '/validation', sess.graph)
+        # validation_writer = tf.summary.FileWriter(summary_dir + '/validation', sess.graph)
 
         sess.run(init)
 
@@ -170,11 +170,10 @@ def main(_):
                 y_pred_, summary = sess.run([y_pred, summary_op], feed_dict={x: x_batch, y: y_batch})
                 test_pred.extend(np.squeeze(y_pred_))
                 test_true.extend(y_batch)
-                validation_writer.add_summary(summary, epoch)
 
-                test_accuracy = metrics.accuracy_score(test_true, test_pred)
-                test_f1 = metrics.f1_score(test_true, test_pred, average='weighted')
-                print('epoch: {}, accuracy: {}, f1-score: {}'.format(epoch, test_accuracy, test_f1))
+            test_accuracy = metrics.accuracy_score(test_true, test_pred)
+            test_f1 = metrics.f1_score(test_true, test_pred, average='weighted')
+            print('epoch: {}, accuracy: {}, f1-score: {}'.format(epoch, test_accuracy, test_f1))
 
 
 if __name__ == '__main__':

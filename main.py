@@ -153,9 +153,9 @@ def main():
                 test_pred.extend(np.squeeze(y_pred_))
                 test_true.extend(y_batch)
 
-            accuracy = metrics.accuracy_score(test_true, test_pred)
-            f1 = metrics.f1_score(test_true, test_pred, average='weighted')
-            print('epoch: {}, accuracy: {}, f1-score: {}'.format(epoch, accuracy, f1))
+            test_accuracy = metrics.accuracy_score(test_true, test_pred)
+            test_f1 = metrics.f1_score(test_true, test_pred, average='weighted')
+            print('epoch: {}, accuracy: {}, f1-score: {}'.format(epoch, test_accuracy, test_f1))
 
 
 if __name__ == '__main__':

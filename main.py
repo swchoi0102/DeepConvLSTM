@@ -6,6 +6,7 @@ import argparse
 import sys
 
 from sliding_window import sliding_window
+from time import time, localtime
 
 # Hardcoded number of sensor channels employed in the OPPORTUNITY challenge
 NB_SENSOR_CHANNELS = 113
@@ -116,6 +117,7 @@ def main(_):
 
     with tf.name_scope('loss'):
         loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=y))
+        tf.summary.scalar('cross_entropy', loss_op)
 
     with tf.name_scope('optimizer'):
         optimizer = tf.train.RMSPropOptimizer(learning_rate=FLAGS.lr)
@@ -128,40 +130,58 @@ def main(_):
         with tf.name_scope('accuracy'):
             accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
+    tf.summary.scalar('accuracy', accuracy)
+    summary_op = tf.summary.merge_all()
+
     init = tf.global_variables_initializer()
 
     saver = tf.train.Saver()
 
-    with tf.Session() as sess:
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    with tf.Session(config) as sess:
+
+        # get current time
+        t = tuple(localtime(time()))[1:5]
+        # summary directory path to save summaries
+        summary_dir = '/tmp/deepconvlstm/run-%02d%02d-%02d%02d' % t
+
+        # training and validation dataset summary writer
+        train_writer = tf.summary.FileWriter(summary_dir + '/train', sess.graph)
+        validation_writer = tf.summary.FileWriter(summary_dir + '/validation', sess.graph)
+
         sess.run(init)
 
         step = 0
         for epoch in range(FLAGS.num_epoch):
             for batch in iterate_minibatches(X_train, y_train, FLAGS.batch_size):
                 x_batch, y_batch = batch
-                _, loss, acc = sess.run([train_op, loss_op, accuracy], feed_dict={x: x_batch, y: y_batch})
+                _, loss, acc, summary = sess.run([train_op, loss_op, accuracy, summary_op],
+                                                 feed_dict={x: x_batch, y: y_batch})
+                train_writer.add_summary(summary, step)
 
                 step += 1
-                if step % 10 == 0:
+                if step % 50 == 0:
                     print('step: {}, training loss: {}, training accuracy: {}'.format(step, loss, acc))
 
             test_pred, test_true = list(), list()
             for batch in iterate_minibatches(X_test, y_test, FLAGS.batch_size):
                 x_batch, y_batch = batch
-                y_pred_ = sess.run([y_pred], feed_dict={x: x_batch, y: y_batch})
+                y_pred_, summary = sess.run([y_pred, summary_op], feed_dict={x: x_batch, y: y_batch})
                 test_pred.extend(np.squeeze(y_pred_))
                 test_true.extend(y_batch)
+                validation_writer.add_summary(summary, epoch)
 
-            test_accuracy = metrics.accuracy_score(test_true, test_pred)
-            test_f1 = metrics.f1_score(test_true, test_pred, average='weighted')
-            print('epoch: {}, accuracy: {}, f1-score: {}'.format(epoch, test_accuracy, test_f1))
+                test_accuracy = metrics.accuracy_score(test_true, test_pred)
+                test_f1 = metrics.f1_score(test_true, test_pred, average='weighted')
+                print('epoch: {}, accuracy: {}, f1-score: {}'.format(epoch, test_accuracy, test_f1))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=100, help='batch size')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
-    parser.add_argument('--num_epoch', type=int, default=10, help='the number of epochs')
+    parser.add_argument('--num_epoch', type=int, default=20, help='the number of epochs')
     FLAGS, unparsed = parser.parse_known_args()
 
     tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)

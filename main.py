@@ -72,13 +72,45 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
         yield inputs[excerpt], targets[excerpt]
 
 
+def convolution(x, num_fileters, kernel_shape, name, training):
+    conv = tf.layers.conv2d(x, num_fileters, kernel_size=kernel_shape, activation=None, use_bias=False,
+                            kernel_initializer=tf.contrib.layers.variance_scaling_initializer(), name=name)
+    bn = tf.layers.batch_normalization(conv, training=training)
+    relu = tf.nn.relu(bn)
+    return relu
+
+
+# depthwise separable convolution
+def ds_convolution(x, num_fileters, kernel_shape, training):
+    depthwise_conv = tf.contrib.layers.separable_conv2d(x,
+                                                        num_outputs=None,
+                                                        depth_multiplier=1,
+                                                        kernel_size=kernel_shape,
+                                                        stride=[1, 1],
+                                                        padding='VALID',
+                                                        activation_fn=None,
+                                                        weights_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                                        biases_initializer=None)
+    bn = tf.layers.batch_normalization(inputs=depthwise_conv, training=training)
+    relu = tf.nn.relu(bn)
+    pointwise_conv = tf.layers.conv2d(relu, num_fileters, [1, 1], use_bias=False,
+                                      kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
+    bn = tf.layers.batch_normalization(pointwise_conv, training=training)
+    relu = tf.nn.relu(bn)
+    return relu
+
+
 def build_graph(x):
-    conv1 = tf.layers.conv2d(x, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv1/5x1')
-    conv2 = tf.layers.conv2d(conv1, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv2/5x1')
-    conv3 = tf.layers.conv2d(conv2, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv3/5x1')
-    conv4 = tf.layers.conv2d(conv3, NUM_FILTERS, [1, FILTER_SIZE], activation=tf.nn.relu, name='conv4/5x1')
-    conv4_transpose = tf.transpose(conv4, perm=[0, 2, 1, 3])
-    conv4_reshape = tf.reshape(conv4_transpose, [-1, 97, 24 * 64])
+    is_training = tf.placeholder(tf.bool, name='is_training')
+    conv1 = convolution(x, NUM_FILTERS, [1, FILTER_SIZE], 'conv1/5x1', is_training)
+    print(conv1.shape)
+    conv2 = convolution(conv1, NUM_FILTERS, [1, FILTER_SIZE], 'conv2/5x1', is_training)
+    print(conv2.shape)
+    conv3 = convolution(conv2, NUM_FILTERS, [1, FILTER_SIZE], 'conv3/5x1', is_training)
+    print(conv3.shape)
+    conv4 = convolution(conv3, NUM_FILTERS, [1, FILTER_SIZE], 'conv4/5x1', is_training)
+    print(conv4.shape)
+    conv4_reshape = tf.reshape(conv4, [-1, 24, 97 * 64])
 
     lstm = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(NUM_UNITS_LSTM) for _ in range(2)])
     output, state = tf.nn.dynamic_rnn(lstm, conv4_reshape, dtype=tf.float32)
@@ -90,29 +122,86 @@ def build_graph(x):
 
     logits = tf.layers.dense(inputs=last_output, units=NUM_CLASSES, activation=None)
 
-    return logits
+    return logits, is_training
+
+
+def build_graph2(x):
+    is_training = tf.placeholder(tf.bool, name='is_training')
+    conv1 = ds_convolution(x, NUM_FILTERS, [1, FILTER_SIZE], is_training)
+    conv2 = ds_convolution(conv1, NUM_FILTERS, [1, FILTER_SIZE], is_training)
+    conv3 = ds_convolution(conv2, NUM_FILTERS, [1, FILTER_SIZE], is_training)
+    conv4 = ds_convolution(conv3, NUM_FILTERS, [1, FILTER_SIZE], is_training)
+    conv4_reshape = tf.reshape(conv4, [-1, 24, 97 * 64])
+
+    lstm = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(NUM_UNITS_LSTM) for _ in range(2)])
+    output, state = tf.nn.dynamic_rnn(lstm, conv4_reshape, dtype=tf.float32)
+    print("RNN output shape: {}".format(output.shape))
+
+    output = tf.transpose(output, [1, 0, 2])
+    last_output = tf.gather(output, int(output.get_shape()[0]) - 1)
+    print('RNN last output shape: {}'.format(last_output.shape))
+
+    logits = tf.layers.dense(inputs=last_output, units=NUM_CLASSES, activation=None)
+
+    return logits, is_training
+
+
+def build_graph3(x):
+    is_training = tf.placeholder(tf.bool, name='is_training')
+    conv1 = tf.layers.separable_conv2d(x, NUM_FILTERS, [1, FILTER_SIZE],
+                                       depthwise_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                       pointwise_initializer=tf.contrib.layers.variance_scaling_initializer())
+    conv2 = tf.layers.separable_conv2d(conv1, NUM_FILTERS, [1, FILTER_SIZE],
+                                       depthwise_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                       pointwise_initializer=tf.contrib.layers.variance_scaling_initializer())
+    conv3 = tf.layers.separable_conv2d(conv2, NUM_FILTERS, [1, FILTER_SIZE],
+                                       depthwise_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                       pointwise_initializer=tf.contrib.layers.variance_scaling_initializer())
+    conv4 = tf.layers.separable_conv2d(conv3, NUM_FILTERS, [1, FILTER_SIZE],
+                                       depthwise_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                       pointwise_initializer=tf.contrib.layers.variance_scaling_initializer())
+    conv4_reshape = tf.reshape(conv4, [-1, 24, 97 * 64])
+
+    lstm = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(NUM_UNITS_LSTM) for _ in range(2)])
+    output, state = tf.nn.dynamic_rnn(lstm, conv4_reshape, dtype=tf.float32)
+    print("RNN output shape: {}".format(output.shape))
+
+    output = tf.transpose(output, [1, 0, 2])
+    last_output = tf.gather(output, int(output.get_shape()[0]) - 1)
+    print('RNN last output shape: {}'.format(last_output.shape))
+
+    logits = tf.layers.dense(inputs=last_output, units=NUM_CLASSES, activation=None)
+
+    return logits, is_training
 
 
 def main(_):
     print("Loading data...")
-    X_train, y_train, X_test, y_test = load_dataset('data/oppChallenge_gestures.data')
+    x_train, y_train, x_test, y_test = load_dataset('data/oppChallenge_gestures.data')
 
-    assert NB_SENSOR_CHANNELS == X_train.shape[1]
+    assert NB_SENSOR_CHANNELS == x_train.shape[1]
 
     # Sensor data is segmented using a sliding window mechanism
-    X_train, y_train = opp_sliding_window(X_train, y_train, SLIDING_WINDOW_LENGTH, SLIDING_WINDOW_STEP)
-    X_test, y_test = opp_sliding_window(X_test, y_test, SLIDING_WINDOW_LENGTH, SLIDING_WINDOW_STEP)
-    print(" ..after sliding window (testing): inputs {0}, targets {1}".format(X_test.shape, y_test.shape))
+    x_train, y_train = opp_sliding_window(x_train, y_train, SLIDING_WINDOW_LENGTH, SLIDING_WINDOW_STEP)
+    x_test, y_test = opp_sliding_window(x_test, y_test, SLIDING_WINDOW_LENGTH, SLIDING_WINDOW_STEP)
+    print(" ..after sliding window (testing): inputs {0}, targets {1}".format(x_train.shape, y_train.shape))
+    print(" ..after sliding window (testing): inputs {0}, targets {1}".format(x_test.shape, y_test.shape))
 
     # Data is reshaped since the input of the network is a 4 dimension tensor
-    X_train = X_train.reshape((-1, SLIDING_WINDOW_LENGTH, NB_SENSOR_CHANNELS, 1))
-    X_test = X_test.reshape((-1, SLIDING_WINDOW_LENGTH, NB_SENSOR_CHANNELS, 1))
+    x_train = x_train.reshape((-1, SLIDING_WINDOW_LENGTH, NB_SENSOR_CHANNELS, 1))
+    x_test = x_test.reshape((-1, SLIDING_WINDOW_LENGTH, NB_SENSOR_CHANNELS, 1))
 
     x = tf.placeholder(tf.float32, [None, 24, 113, 1])
     y = tf.placeholder(tf.int32, [None])
 
     with tf.name_scope('logits'):
-        logits = build_graph(x)
+        # FIXME
+        if FLAGS.mode == 1:
+            logits, is_training = build_graph(x)
+        elif FLAGS.mode == 2:
+            logits, is_training = build_graph2(x)
+        else:
+            logits, is_training = build_graph3(x)
         prediction = tf.nn.softmax(logits)
 
     with tf.name_scope('loss'):
@@ -120,8 +209,9 @@ def main(_):
         tf.summary.scalar('cross_entropy', loss_op)
 
     with tf.name_scope('optimizer'):
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=FLAGS.lr)
-        train_op = optimizer.minimize(loss_op)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            train_op = tf.train.RMSPropOptimizer(learning_rate=FLAGS.lr).minimize(loss_op)
 
     with tf.name_scope('accuracy'):
         with tf.name_scope('correct_prediction'):
@@ -144,7 +234,8 @@ def main(_):
         # get current time
         t = tuple(localtime(time()))[1:5]
         # summary directory path to save summaries
-        summary_dir = '/tmp/deepconvlstm/run-%02d%02d-%02d%02d' % t
+        summary_dir = '/tmp/deepconvlstm/run-%02d%02d-%02d%02d/summary' % t
+        ckpt_dir = '/tmp/deepconvlstm/run-%02d%02d-%02d%02d/ckpt' % t
 
         # training and validation dataset summary writer
         train_writer = tf.summary.FileWriter(summary_dir + '/train', sess.graph)
@@ -152,35 +243,75 @@ def main(_):
 
         sess.run(init)
 
-        step = 0
-        for epoch in range(FLAGS.num_epoch):
-            for batch in iterate_minibatches(X_train, y_train, FLAGS.batch_size):
-                x_batch, y_batch = batch
-                _, loss, acc, summary = sess.run([train_op, loss_op, accuracy, summary_op],
-                                                 feed_dict={x: x_batch, y: y_batch})
-                train_writer.add_summary(summary, step)
+        best_f1 = 0.8
+        best_epoch = 0
 
-                step += 1
-                if step % 50 == 0:
-                    print('step: {}, training loss: {}, training accuracy: {}'.format(step, loss, acc))
+        # step = 0
+        # for epoch in range(FLAGS.num_epoch):
+        #     for batch in iterate_minibatches(x_train, y_train, FLAGS.batch_size, shuffle=True):
+        #         x_batch, y_batch = batch
+        #         _, loss, acc, summary = sess.run([train_op, loss_op, accuracy, summary_op],
+        #                                          feed_dict={x: x_batch, y: y_batch, is_training: True})
+        #         train_writer.add_summary(summary, step)
+        #
+        #         step += 1
+        #         if step % 100 == 0:
+        #             print('step: {}, training loss: {}, training accuracy: {}'.format(step, loss, acc))
+        #
+        #     start_time = time()
+        #     test_pred, test_true = list(), list()
+        #     for batch in iterate_minibatches(x_test, y_test, FLAGS.batch_size):
+        #         x_batch, y_batch = batch
+        #         y_pred_ = sess.run([y_pred], feed_dict={x: x_batch, y: y_batch, is_training: False})
+        #         test_pred.extend(np.squeeze(y_pred_))
+        #         test_true.extend(y_batch)
+        #     end_time = time()
+        #
+        #     test_accuracy = metrics.accuracy_score(test_true, test_pred)
+        #     test_f1 = metrics.f1_score(test_true, test_pred, average='weighted')
+        #     print('epoch: {}, accuracy: {}, f1-score: {}, elpased time: {}'
+        #         .format(epoch + 1, test_accuracy, test_f1, end_time - start_time))
+        #
+        #     if test_f1 > best_f1:
+        #         best_f1 = test_f1
+        #         best_epoch = epoch + 1
+        #         # saver.save(sess, ckpt_dir, global_step=epoch)
+        #
+        # print("*" * 50)
+        # print("best epoch: {}, best f1 score: {}".format(best_epoch, best_f1))
 
-            test_pred, test_true = list(), list()
-            for batch in iterate_minibatches(X_test, y_test, FLAGS.batch_size):
-                x_batch, y_batch = batch
-                y_pred_, summary = sess.run([y_pred, summary_op], feed_dict={x: x_batch, y: y_batch})
-                test_pred.extend(np.squeeze(y_pred_))
-                test_true.extend(y_batch)
+        # measure inference time
+        cnt = 0
+        start_time = time()
+        for batch in iterate_minibatches(x_test, y_test, 1):
+            x_batch, y_batch = batch
+            sess.run([y_pred], feed_dict={x: x_batch, y: y_batch, is_training: False})
+            cnt += 1
 
-            test_accuracy = metrics.accuracy_score(test_true, test_pred)
-            test_f1 = metrics.f1_score(test_true, test_pred, average='weighted')
-            print('epoch: {}, accuracy: {}, f1-score: {}'.format(epoch, test_accuracy, test_f1))
+            if cnt == 100:
+                break
+        end_time = time()
+
+        print('Average inference time : {}'.format((end_time - start_time) / cnt))
+        print('Average inference per second : {}'.format(cnt / (end_time - start_time)))
+
+        # total_parameters = 0
+        # for variable in tf.trainable_variables():
+        #     # shape is an array of tf.Dimension
+        #     shape = variable.get_shape()
+        #     variable_parameters = 1
+        #     for dim in shape:
+        #         variable_parameters *= dim.value
+        #     total_parameters += variable_parameters
+        # print('total number of parameters: {}'.format(total_parameters))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=100, help='batch size')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
-    parser.add_argument('--num_epoch', type=int, default=20, help='the number of epochs')
+    parser.add_argument('--num_epoch', type=int, default=10, help='the number of epochs')
+    parser.add_argument('--mode', type=int, default=3, help='mode 1, 2, or 3')
     FLAGS, unparsed = parser.parse_known_args()
 
     tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
